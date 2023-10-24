@@ -5,10 +5,13 @@ public class Process {
 	protected String processData;
 	protected int departmentId;
 
-	public Process(int processId, String processData, int departmentId) {
-		this.processId = processId;
+	public Process(String processData, int departmentId) {
 		this.processData = processData;
 		this.departmentId = departmentId;
+	}
+
+	public Process() {
+
 	}
 
 	public int getProcessId() {

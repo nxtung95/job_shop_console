@@ -1,6 +1,6 @@
 package jop_shop.model;
 
-import java.util.Date;
+import java.sql.Date;
 
 public class ProcessAccount extends Account {
 	private int processId;

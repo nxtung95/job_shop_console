@@ -4,12 +4,12 @@ public class PaintProcess extends Process {
 	private String paintType;
 	private String paintMethod;
 
-	public PaintProcess(int processId, String processData, int departmentId) {
-		super(processId, processData, departmentId);
+	public PaintProcess( String processData, int departmentId) {
+		super(processData, departmentId);
 	}
 
-	public PaintProcess(int processId, String processData, int departmentId, String paintType, String paintMethod) {
-		super(processId, processData, departmentId);
+	public PaintProcess(String processData, int departmentId, String paintType, String paintMethod) {
+		super(processData, departmentId);
 		this.paintType = paintType;
 		this.paintMethod = paintMethod;
 	}

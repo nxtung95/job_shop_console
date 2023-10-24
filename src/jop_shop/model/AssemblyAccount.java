@@ -1,6 +1,6 @@
 package jop_shop.model;
 
-import java.util.Date;
+import java.sql.Date;
 
 public class AssemblyAccount extends Account {
 	private int assemblyId;

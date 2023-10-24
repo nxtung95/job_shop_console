@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 
 public class BaseDao {
-	private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=QuanLyBanHang";
+	private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=job_shop;encrypt=true;trustServerCertificate=true;";
 	private static final String USER = "sa";
 	private static final String PASS = "firstTime95";
 
