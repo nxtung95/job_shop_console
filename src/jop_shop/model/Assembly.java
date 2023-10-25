@@ -18,6 +18,12 @@ public class Assembly {
 		this.customerId = customerId;
 	}
 
+	public Assembly(Date dateOrdered, String assemblyDetail, int customerId) {
+		this.dateOrdered = dateOrdered;
+		this.assemblyDetail = assemblyDetail;
+		this.customerId = customerId;
+	}
+
 	public int getAssemblyId() {
 		return assemblyId;
 	}
@@ -48,5 +54,15 @@ public class Assembly {
 
 	public void setCustomerId(int customerId) {
 		this.customerId = customerId;
+	}
+
+	@Override
+	public String toString() {
+		return "Assembly{" +
+				"assemblyId=" + assemblyId +
+				", dateOrdered=" + dateOrdered +
+				", assemblyDetail='" + assemblyDetail + '\'' +
+				", customerId=" + customerId +
+				'}';
 	}
 }

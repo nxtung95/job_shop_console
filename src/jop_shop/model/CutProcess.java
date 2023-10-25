@@ -8,6 +8,12 @@ public class CutProcess extends Process {
 		super(processData, departmentId);
 	}
 
+	public CutProcess(int processId, String processData, int departmentId, String cuttingType, String machineType) {
+		super(processId, processData, departmentId);
+		this.cuttingType = cuttingType;
+		this.machineType = machineType;
+	}
+
 	public CutProcess(String processData, int departmentId, String cuttingType, String machineType) {
 		super(processData, departmentId);
 		this.cuttingType = cuttingType;

@@ -10,6 +10,12 @@ public class Process {
 		this.departmentId = departmentId;
 	}
 
+	public Process(int processId, String processData, int departmentId) {
+		this.processId = processId;
+		this.processData = processData;
+		this.departmentId = departmentId;
+	}
+
 	public Process() {
 
 	}

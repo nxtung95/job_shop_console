@@ -19,6 +19,21 @@ public class Job {
 		this.laborTime = laborTime;
 	}
 
+    public Job(Date completedDate, Date commencedDate, int assemblyId, int processId, int laborTime) {
+		this.completedDate = completedDate;
+		this.commencedDate = commencedDate;
+		this.assemblyId = assemblyId;
+		this.processId = processId;
+		this.laborTime = laborTime;
+    }
+
+	public Job(Date completedDate, Date commencedDate, int processId, int laborTime) {
+		this.completedDate = completedDate;
+		this.commencedDate = commencedDate;
+		this.processId = processId;
+		this.laborTime = laborTime;
+	}
+
 	public int getJobNumber() {
 		return jobNumber;
 	}
@@ -65,5 +80,17 @@ public class Job {
 
 	public void setLaborTime(int laborTime) {
 		this.laborTime = laborTime;
+	}
+
+	@Override
+	public String toString() {
+		return "Job{" +
+				"jobNumber=" + jobNumber +
+				", completedDate=" + completedDate +
+				", commencedDate=" + commencedDate +
+				", assemblyId=" + assemblyId +
+				", processId=" + processId +
+				", laborTime=" + laborTime +
+				'}';
 	}
 }

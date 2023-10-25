@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProcessDao extends BaseDao {
 	public boolean add(Process process) {
@@ -64,5 +66,42 @@ public class ProcessDao extends BaseDao {
 			closeConnection(connection, ps, null);
 		}
 		return false;
+	}
+
+	public List<Process> findAll() {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		List<Process> processList = new ArrayList<>();
+		try {
+			connection = getConnection();
+			StringBuilder sql = new StringBuilder("SELECT a.process_id, a.process_data, a.department_id, b.fit_type as extra1, '' as extra2, '0' as type FROM process a JOIN fit_process b ON a.process_id = b.process_id ");
+			sql.append("UNION ALL SELECT a.process_id, a.process_data, a.department_id, b.cutting_type as extra1, b.machine_type as extra2, '1' as type FROM process a JOIN cut_process b ON a.process_id = b.process_id ");
+			sql.append("UNION ALL SELECT a.process_id, a.process_data, a.department_id, b.paint_type as extra1, b.paint_method as extra2, '2' as type FROM process a JOIN paint_process b ON a.process_id = b.process_id ");
+			ps = connection.prepareStatement(sql.toString());
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				int processId = rs.getInt("processId");
+				String processData = rs.getString("process_data");
+				int departmentId = rs.getInt("department_id");
+				String extra1 = rs.getString("extra1");
+				String extra2 = rs.getString("extra2");
+				String type = rs.getString("type");
+				Process process;
+				if ("0".equals(type)) {
+					process = new FitProcess(processId, processData, departmentId, extra1);
+				} else if ("1".equals(type)) {
+					process = new CutProcess(processId, processData, departmentId, extra1, extra2);
+				} else {
+					process = new PaintProcess(processId, processData, departmentId, extra1, extra2);
+				}
+				processList.add(process);
+			}
+			return processList;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection(connection, ps, null);
+		}
+		return processList;
 	}
 }
