@@ -6,8 +6,10 @@ public class PaintJob extends Job {
 	private String color;
 	private int volume;
 
-	public PaintJob(Date completedDate, Date commencedDate, int assemblyId, int processId, int laborTime) {
+	public PaintJob(Date completedDate, Date commencedDate, int assemblyId, int processId, int laborTime, String color, int volume) {
 		super(completedDate, commencedDate, assemblyId, processId, laborTime);
+		this.color = color;
+		this.volume = volume;
 	}
 
 	public PaintJob(Date completedDate, Date commencedDate, int processId, int laborTime, String color, int volume) {
@@ -16,8 +18,8 @@ public class PaintJob extends Job {
 		this.volume = volume;
 	}
 
-	public PaintJob(Date completedDate, Date commencedDate, int assemblyId, int processId, int laborTime, String color, int volume) {
-		super(completedDate, commencedDate, assemblyId, processId, laborTime);
+	public PaintJob(int jobNumber, Date completedDate, Date commencedDate, int assemblyId, int processId, int laborTime, String color, int volume) {
+		super(jobNumber, completedDate, commencedDate, assemblyId, processId, laborTime);
 		this.color = color;
 		this.volume = volume;
 	}

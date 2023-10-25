@@ -6,7 +6,9 @@ import jop_shop.model.*;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class Main {
@@ -16,6 +18,7 @@ public class Main {
     private static JobDao jobDao = new JobDao();
     private static AccountDao accountDao = new AccountDao();
     private static AssemblyDao assemblyDao = new AssemblyDao();
+    private static TransactionDao transactionDao = new TransactionDao();
 
     public static void main(String[] args) {
         Scanner keyboard = null;
@@ -63,14 +66,19 @@ public class Main {
                         handleOption6(keyboard);
                         break;
                     case "7":
+                        handleOption7(keyboard);
                         break;
                     case "8":
+                        handleOption8(keyboard);
                         break;
                     case "9":
+                        handleOption9(keyboard);
                         break;
                     case "10":
+                        handleOption10(keyboard);
                         break;
                     case "11":
+                        handleOption11(keyboard);
                         break;
                     case "12":
                         break;
@@ -99,26 +107,99 @@ public class Main {
         }
     }
 
+    private static void handleOption11(Scanner keyboard) {
+        List<Assembly> assemblyList = assemblyDao.findAll();
+        printAssemblyData(assemblyList);
+        Assembly assembly = inputAssembly(keyboard, assemblyList);
+        int assemblyId = assembly.getAssemblyId();
+
+        List<Process> processList = processDao.finAllByAssemblyAndJobCompleted(assemblyId);
+    }
+
+    private static void handleOption10(Scanner keyboard) {
+        List<Department> departmentList = departmentDao.findAll();
+        printDepartmentData(departmentList);
+        Department department = inputDepartment(keyboard, departmentList);
+
+        String againMessage = "Enter a completed date (dd-MM-yyyy): ";
+        System.out.println(againMessage);
+        Date completedDate = inputDate(keyboard, againMessage);
+
+        int totalLaborTime = jobDao.getTotalLaborTime(department.getDepartmentId(), completedDate);
+        System.out.println("The total labor time within a department and during a given date is: " + totalLaborTime);
+    }
+
+    private static void handleOption9(Scanner keyboard) {
+        List<Assembly> assemblyList = assemblyDao.findAll();
+        printAssemblyData(assemblyList);
+        Assembly assembly = inputAssembly(keyboard, assemblyList);
+
+        double totalCost = accountDao.getTotalCostByAssemblyId(assembly.getAssemblyId());
+        System.out.println("The total cost incurred on an assembly-id " + assembly.getAssemblyId() + " is: " + totalCost);
+    }
+
+    private static void handleOption8(Scanner keyboard) {
+        List<Transaction> transactionList = transactionDao.findAll();
+        printTransactionData(transactionList);
+        Transaction transaction = inputTransaction(keyboard, transactionList);
+
+        String againMessage = "Enter a supplied cost: ";
+        System.out.println(againMessage);
+        double suppliedCost = inputDecimal(keyboard, againMessage);
+
+        boolean result = accountDao.updateSuppliedCost(transaction, suppliedCost);
+        if (result) {
+            System.out.println("Update the supplied cost successfully");
+        } else {
+            System.out.println("Update the supplied cost fail");
+        }
+    }
+
+    private static void handleOption7(Scanner keyboard) {
+        List<Job> jobList = jobDao.findAll();
+        printJobData(jobList);
+        Job job = inputJob(keyboard, jobList);
+        int jobNumber = job.getJobNumber();
+
+        String againMessage = "Enter a completed date (dd-MM-yyyy): ";
+        System.out.println(againMessage);
+        Date completedDate = inputDate(keyboard, againMessage);
+
+        boolean result = jobDao.updateCompletedDate(jobNumber, completedDate);
+        if (result) {
+            System.out.println("Update the completed date of the job successfully");
+        } else {
+            System.out.println("Update the completed date of the job fail");
+        }
+    }
+
     private static void handleOption6(Scanner keyboard) {
         System.out.println("Enter a new job");
+        String jobType;
+        while (true) {
+            System.out.println("1. Fit job");
+            System.out.println("2. Cut job");
+            System.out.println("3. Paint job");
+            System.out.println("Choose type job: ");
+            jobType = keyboard.nextLine();
+            if (!Arrays.asList("1,2,3".split(",")).contains(jobType)) {
+                System.out.println("Invalid job type, please try again");
+            } else {
+                break;
+            }
+        }
 
-        System.out.println("1. Fit job");
-        System.out.println("2. Cut job");
-        System.out.println("3. Paint job");
-        System.out.println("Choose type job: ");
-        String jobType = keyboard.nextLine();
+        List<Assembly> assemblyList = assemblyDao.findAll();
+        printAssemblyData(assemblyList);
+        Assembly assembly = inputAssembly(keyboard, assemblyList);
+        int assemblyId = assembly.getAssemblyId();
 
-        printAssemblyData();
-        String againMessage = "Enter the assembly id: ";
-        System.out.println(againMessage);
-        int assemblyId = inputNumber(keyboard, againMessage);
+        List<Process> processList = processDao.findAll();
+        printProcessData(processList);
+        Process process = inputProcess(keyboard, processList);
+        int processId = process.getProcessId();
 
-        printProcessData();
-        againMessage = "Enter the process id: ";
-        System.out.println(againMessage);
-        int processId = inputNumber(keyboard, againMessage);
-
-        againMessage = "Enter a commenced date (yyyy/MM/dd): ";
+        String againMessage = "Enter a commenced date (dd-MM-yyyy): ";
         System.out.println(againMessage);
         Date commendDate = inputDate(keyboard, againMessage);
 
@@ -128,7 +209,7 @@ public class Main {
         Job job = null;
         while (true) {
             if ("1".equals(jobType)) {
-                job = new FitJob(null, commendDate, processId, laborTime);
+                job = new FitJob(null, commendDate, assemblyId, processId, laborTime);
             } else if ("2".equals(jobType)) {
                 System.out.println("Enter a machine type: ");
                 String machineType = keyboard.nextLine();
@@ -140,7 +221,7 @@ public class Main {
                 System.out.println("Enter a material used: ");
                 String materialUsed = keyboard.nextLine();
 
-                job = new CutJob(null, commendDate, processId, laborTime, machineType, machineUsedTime, materialUsed);
+                job = new CutJob(null, commendDate, assemblyId, processId, laborTime, machineType, machineUsedTime, materialUsed);
             } else if ("3".equals(jobType)) {
                 System.out.println("Enter a color: ");
                 String color = keyboard.nextLine();
@@ -149,20 +230,10 @@ public class Main {
                 System.out.println(againMessage);
                 int volume = inputNumber(keyboard, againMessage);
 
-                job = new PaintJob(null, commendDate, processId, laborTime, color, volume);
+                job = new PaintJob(null, commendDate, assemblyId, processId, laborTime, color, volume);
             }
-            if (job == null) {
-                System.out.println("Invalid job type");
-                System.out.println("1. Fit job");
-                System.out.println("2. Cut job");
-                System.out.println("3. Paint job");
-                System.out.println("Choose type job: ");
-                jobType = keyboard.nextLine();
-            } else {
-                jobDao.add(job);
-            }
+            jobDao.add(job);
         }
-
     }
 
     private static void handleOption5(Scanner keyboard) {
@@ -173,6 +244,10 @@ public class Main {
             System.out.println("3. Department account");
             System.out.println("Choose type account: ");
             String accountType = keyboard.nextLine();
+            if (!Arrays.asList("1,2,3".split(",")).contains(accountType)) {
+                System.out.println("Invalid account type, try enter again");
+                continue;
+            }
 
             String accountNo;
             while (true) {
@@ -192,22 +267,24 @@ public class Main {
             Date establishedDate = new Date(new java.util.Date().getTime());
             Account account;
             if ("1".equals(accountType)) {
-                printAssemblyData();
-                againName = "Enter the assembly id: ";
-                System.out.println(againName);
-                int assemblyId = inputNumber(keyboard, againName);
+                List<Assembly> assemblyList = assemblyDao.findAll();
+                printAssemblyData(assemblyList);
+                Assembly assembly = inputAssembly(keyboard, assemblyList);
+                int assemblyId = assembly.getAssemblyId();
+
                 account = new AssemblyAccount(accountNo, establishedDate, cost, assemblyId);
             } else if ("2".equals(accountType)) {
-                printProcessData();
-                againName = "Enter the process id: ";
-                System.out.println(againName);
-                int processId = inputNumber(keyboard, againName);
+                List<Process> processList = processDao.findAll();
+                printProcessData(processList);
+                Process process = inputProcess(keyboard, processList);
+                int processId = process.getProcessId();
                 account = new ProcessAccount(accountNo, establishedDate, cost, processId);
             } else if ("3".equals(accountType)) {
-                printDepartmentData();
-                againName = "Enter the department id: ";
-                System.out.println(againName);
-                int departmentId = inputNumber(keyboard, againName);
+                List<Department> departmentList = departmentDao.findAll();
+                printDepartmentData(departmentList);
+                Department department = inputDepartment(keyboard, departmentList);
+                int departmentId = department.getDepartmentId();
+
                 account = new DepartmentAccount(accountNo, establishedDate, cost, departmentId);
             } else {
                 System.out.println("Invalid account type");
@@ -224,46 +301,25 @@ public class Main {
 
     }
 
-    private static void printAssemblyData() {
-        System.out.println("The list assembly: ");
-        System.out.println("Assembly_Id---Assembly_Detail");
-        List<Assembly> assemblyList = assemblyDao.findAll();
-        for (Assembly assembly : assemblyList) {
-            System.out.println(assembly.getAssemblyId() + "---" + assembly.getAssemblyDetail());
-        }
-    }
-
-    private static double inputDecimal(Scanner keyboard, String againName) {
-        while (true) {
-            try {
-                String costStr = keyboard.nextLine();
-                return Double.parseDouble(costStr);
-            } catch (Exception e) {
-                System.out.println("Invalid cost");
-                System.out.println(againName);
-            }
-        }
-    }
-
     private static void handleOption4(Scanner keyboard) {
-        System.out.println("Enter a new assembly: ");
+        System.out.println("Enter a new assembly");
+
         System.out.println("Enter an assembly detail: ");
         String assemblyDetail = keyboard.nextLine();
 
-        printCustomerData();
-
-        String againMessage = "Enter a customer id: ";
-        System.out.println(againMessage);
-        int customerId = inputNumber(keyboard, againMessage);
+        List<Customer> customerList = customerDao.findAll();
+        printCustomerData(customerList);
+        Customer customer = inputCustomer(keyboard, customerList);
+        int customerId = customer.getCustomerId();
 
         Date orderDate = new Date(new java.util.Date().getTime());
         Assembly assembly = new Assembly(orderDate, assemblyDetail, customerId);
 
         while (true) {
-            printProcessData();
-            againMessage = "Choose a process id: ";
-            System.out.println(againMessage);
-            int processId = inputNumber(keyboard, againMessage);
+            List<Process> processList = processDao.findAll();
+            printProcessData(processList);
+            Process process = inputProcess(keyboard, processList);
+            int processId = process.getProcessId();
 
             while (true) {
                 System.out.println("This assembly associates one or more processes through one or more jobs. You need to enter jobs: ");
@@ -274,7 +330,7 @@ public class Main {
                 String jobType = keyboard.nextLine();
                 Job job = null;
 
-                againMessage = "Enter a commenced date (yyyy/MM/dd): ";
+                String againMessage = "Enter a commenced date (dd-MM-yyyy): ";
                 System.out.println(againMessage);
                 Date commendDate = inputDate(keyboard, againMessage);
 
@@ -328,33 +384,6 @@ public class Main {
         }
     }
 
-    private static int inputNumber(Scanner keyboard, String againMessage) {
-        while (true) {
-            int data;
-            try {
-                data = Integer.parseInt(keyboard.nextLine());
-                return data;
-            } catch (Exception e) {
-                System.out.println("Invalid data, please enter again");
-                System.out.println(againMessage);
-            }
-        }
-    }
-
-    private static Date inputDate(Scanner keyboard, String againMessage) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
-        while (true) {
-            try {
-                String date = keyboard.nextLine();
-                Date parseDate = new Date(simpleDateFormat.parse(date).getTime());
-                return parseDate;
-            } catch (Exception e) {
-                System.out.println("Invalid format date, please enter again. (yyyy/MM/dd): ");
-                System.out.println(againMessage);
-            }
-        }
-    }
-
     private static void handleOption3(Scanner keyboard) {
         System.out.println("Choose type process: ");
         System.out.println("1. Fit process");
@@ -362,11 +391,10 @@ public class Main {
         System.out.println("3. Paint process");
         String processType = keyboard.nextLine();
 
-        printDepartmentData();
-
-        String againMessage = "Enter the department id: ";
-        System.out.println(againMessage);
-        int departmentId = inputNumber(keyboard, againMessage);
+        List<Department> departmentList = departmentDao.findAll();
+        printDepartmentData(departmentList);
+        Department department = inputDepartment(keyboard, departmentList);
+        int departmentId = department.getDepartmentId();
 
         System.out.println("Enter a process data: ");
         String processData = keyboard.nextLine();
@@ -439,10 +467,187 @@ public class Main {
         }
     }
 
-    private static void printProcessData() {
+    private static double inputDecimal(Scanner keyboard, String againName) {
+        while (true) {
+            try {
+                String costStr = keyboard.nextLine();
+                return Double.parseDouble(costStr);
+            } catch (Exception e) {
+                System.out.println("Invalid cost");
+                System.out.println(againName);
+            }
+        }
+    }
+
+    private static int inputNumber(Scanner keyboard, String againMessage) {
+        while (true) {
+            int data;
+            try {
+                data = Integer.parseInt(keyboard.nextLine());
+                return data;
+            } catch (Exception e) {
+                System.out.println("Invalid data, please enter again");
+                System.out.println(againMessage);
+            }
+        }
+    }
+
+    private static Date inputDate(Scanner keyboard, String againMessage) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        while (true) {
+            try {
+                String date = keyboard.nextLine();
+                Date parseDate = new Date(simpleDateFormat.parse(date).getTime());
+                return parseDate;
+            } catch (Exception e) {
+                System.out.println("Invalid format date, please enter again. (dd-MM-yyyy): ");
+                System.out.println(againMessage);
+            }
+        }
+    }
+
+    private static Job inputJob(Scanner keyboard, List<Job> jobList) {
+        while (true) {
+            System.out.println("Enter the job id: ");
+            int jobNumber;
+            try {
+                jobNumber = Integer.parseInt(keyboard.nextLine());
+
+                Optional<Job> optionalJob = jobList.stream().filter(c -> c.getJobNumber() == jobNumber).findFirst();
+                if (!optionalJob.isPresent()) {
+                    System.out.println("The job id is not in the list, please enter again");
+                    continue;
+                }
+                return optionalJob.get();
+            } catch (Exception e) {
+                System.out.println("Invalid job id, please enter again");
+            }
+        }
+    }
+
+    private static void printAssemblyData(List<Assembly> assemblyList) {
+        System.out.println("The list assembly: ");
+        System.out.println("Assembly_Id---Assembly_Detail");
+        for (Assembly assembly : assemblyList) {
+            System.out.println(assembly.getAssemblyId() + "---" + assembly.getAssemblyDetail());
+        }
+    }
+
+    private static Transaction inputTransaction(Scanner keyboard, List<Transaction> transactionList) {
+        while (true) {
+            System.out.println("Enter the transaction number: ");
+            int transactionNumber;
+            try {
+                transactionNumber = Integer.parseInt(keyboard.nextLine());
+
+                Optional<Transaction> optionalTransaction = transactionList.stream().filter(c -> c.getTransactionNumber() == transactionNumber).findFirst();
+                if (!optionalTransaction.isPresent()) {
+                    System.out.println("The transaction number is not in the list, please enter again");
+                    continue;
+                }
+                return optionalTransaction.get();
+            } catch (Exception e) {
+                System.out.println("Invalid transaction number, please enter again");
+            }
+        }
+    }
+
+    private static Assembly inputAssembly(Scanner keyboard, List<Assembly> assemblyList) {
+        while (true) {
+            System.out.println("Enter the assembly id: ");
+            int assemblyId;
+            try {
+                assemblyId = Integer.parseInt(keyboard.nextLine());
+
+                Optional<Assembly> optionalAssembly = assemblyList.stream().filter(c -> c.getAssemblyId() == assemblyId).findFirst();
+                if (!optionalAssembly.isPresent()) {
+                    System.out.println("The assembly id is not in the list, please enter again");
+                    continue;
+                }
+                return optionalAssembly.get();
+            } catch (Exception e) {
+                System.out.println("Invalid assembly id, please enter again");
+            }
+        }
+    }
+
+    private static Process inputProcess(Scanner keyboard, List<Process> processList) {
+        while (true) {
+            System.out.println("Enter a process id: ");
+            int processId;
+            try {
+                processId = Integer.parseInt(keyboard.nextLine());
+
+                Optional<Process> optionalProcess = processList.stream().filter(c -> c.getProcessId() == processId).findFirst();
+                if (!optionalProcess.isPresent()) {
+                    System.out.println("The process id is not in the list, please enter again");
+                    continue;
+                }
+                return optionalProcess.get();
+            } catch (Exception e) {
+                System.out.println("Invalid process id, please enter again");
+            }
+        }
+    }
+
+    private static Customer inputCustomer(Scanner keyboard, List<Customer> customerList) {
+        while (true) {
+            System.out.println("Enter a customer id: ");
+            int customerId;
+            try {
+                customerId = Integer.parseInt(keyboard.nextLine());
+
+                Optional<Customer> optionalCustomer = customerList.stream().filter(c -> c.getCustomerId() == customerId).findFirst();
+                if (!optionalCustomer.isPresent()) {
+                    System.out.println("The customer id is not in the list, please enter again");
+                    continue;
+                }
+                return optionalCustomer.get();
+            } catch (Exception e) {
+                System.out.println("Invalid customer id, please enter again");
+            }
+        }
+    }
+
+    private static Department inputDepartment(Scanner keyboard, List<Department> departmentList) {
+        while (true) {
+            System.out.println("Enter the department id: ");
+            int departmentId;
+            try {
+                departmentId = Integer.parseInt(keyboard.nextLine());
+
+                Optional<Department> optDepartment = departmentList.stream().filter(d -> d.getDepartmentId() == departmentId).findFirst();
+                if (!optDepartment.isPresent()) {
+                    System.out.println("The department id is not in the list, please enter again");
+                    continue;
+                }
+                return optDepartment.get();
+            } catch (Exception e) {
+                System.out.println("Invalid department id, please enter again");
+            }
+        }
+    }
+
+    private static void printJobData(List<Job> jobList) {
+        System.out.println("The list job: ");
+        System.out.println("Job_Number---Job_Type");
+        for (Job job : jobList) {
+            String jobType;
+            if (job instanceof FitJob) {
+                jobType = "Fit Job";
+            } else if (job instanceof CutJob) {
+                jobType = "Cut Job";
+            } else {
+                jobType = "Paint Job";
+            }
+
+            System.out.println(job.getJobNumber() + "---" + jobType);
+        }
+    }
+
+    private static void printProcessData(List<Process> processList) {
         System.out.println("The list process: ");
         System.out.println("Process_ID---Process_Type---Process_Data");
-        List<Process> processList = processDao.findAll();
         for (Process process : processList) {
             String processType;
             if (process instanceof FitProcess) {
@@ -457,18 +662,24 @@ public class Main {
         }
     }
 
-    private static void printCustomerData() {
+    private static void printCustomerData(List<Customer> customerList) {
         System.out.println("The list customer: ");
         System.out.println("Customer_Id---Customer_Name---Customer_Address");
-        List<Customer> customerList = customerDao.findAll();
         for (Customer customer : customerList) {
             System.out.println(customer.getCustomerId() + "---" + customer.getName() + "---" + customer.getAddress());
         }
     }
 
-    private static void printDepartmentData() {
+    private static void printTransactionData(List<Transaction> transactionList) {
+        System.out.println("The list transaction: ");
+        System.out.println("Transaction_Id---Supplied_Cost");
+        for (Transaction transaction : transactionList) {
+            System.out.println(transaction.getTransactionNumber() + "---" + transaction.getSuppliedCost());
+        }
+    }
+
+    private static void printDepartmentData(List<Department> departmentList) {
         System.out.println("The list department: ");
-        List<Department> departmentList = departmentDao.findAll();
         System.out.println("Department_Id--------------------Department_Data");
         for (Department department : departmentList) {
             System.out.println(department.getDepartmentId() + "---" + department.getDepartmentData());

@@ -2,10 +2,9 @@ package jop_shop.dao;
 
 import jop_shop.model.*;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JobDao extends BaseDao {
 	public boolean add(Assembly assembly, Job job) {
@@ -131,5 +130,90 @@ public class JobDao extends BaseDao {
 			closeConnection(connection, ps, null);
 		}
 		return false;
+	}
+
+	public List<Job> findAll() {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		List<Job> jobList = new ArrayList<>();
+		try {
+			connection = getConnection();
+			StringBuilder sql = new StringBuilder("SELECT a.job_number, a.completed_date, a.commenced_date, a.assembly_id, a.process_id, a.labor_time, '' as extra1, 0 as extra2, '' as extra3, '0' as type FROM job a JOIN fit_job b ON a.job_number = b.job_number ");
+			sql.append("UNION ALL SELECT a.job_number, a.completed_date, a.commenced_date, a.assembly_id, a.process_id, a.labor_time, b.machine_type as extra1, b.machine_used_time as extra2, b.material_used as extra3, '1' as type FROM job a JOIN cut_job b ON a.job_number = b.job_number ");
+			sql.append("UNION ALL SELECT a.job_number, a.completed_date, a.commenced_date, a.assembly_id, a.process_id, a.labor_time, b.color as extra1, b.volume as extra2, '' as extra3, '2' as type FROM job a JOIN paint_job b ON a.job_number = b.job_number ");
+			ps = connection.prepareStatement(sql.toString());
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				int jobNumber = rs.getInt("job_number");
+				Date completedDate = rs.getDate("completed_date");
+				Date commencedDate = rs.getDate("commenced_date");
+				int assemblyId = rs.getInt("assembly_id");
+				int processId = rs.getInt("process_id");
+				int laborTime = rs.getInt("labor_time");
+				String extra1 = rs.getString("extra1");
+				int extra2 = rs.getInt("extra2");
+				String extra3 = rs.getString("extra3");
+				String type = rs.getString("type");
+				Job job;
+				if ("0".equals(type)) {
+					job = new FitJob(jobNumber, completedDate, commencedDate, assemblyId, processId, laborTime);
+				} else if ("1".equals(type)) {
+					job = new CutJob(jobNumber, completedDate, commencedDate, assemblyId, processId, laborTime, extra1, extra2, extra3);
+				} else {
+					job = new PaintJob(jobNumber, completedDate, commencedDate, assemblyId, processId, laborTime, extra1, extra2);
+				}
+				jobList.add(job);
+			}
+			return jobList;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection(connection, ps, null);
+		}
+		return jobList;
+	}
+
+	public boolean updateCompletedDate(int jobNumber, Date completedDate) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		try {
+			connection = getConnection();
+			StringBuilder sql = new StringBuilder("UPDATE job SET completed_date = ? WHERE job_number = ?");
+			ps = connection.prepareStatement(sql.toString());
+			ps.setDate(1, completedDate);
+			ps.setInt(2, jobNumber);
+			return ps.executeUpdate() > 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection(connection, ps, null);
+		}
+		return false;
+	}
+
+	public int getTotalLaborTime(int departmentId, Date completedDate) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		try {
+			connection = getConnection();
+			StringBuilder sql = new StringBuilder("SELECT c.department_Id, a.completed_date, SUM(a.labor_time) as totalLaborTime FROM job a ");
+			sql.append("JOIN process b ON a.process_id = b.process_id ");
+			sql.append("JOIN department c ON b.department_id = c.department_id ");
+			sql.append("WHERE c.department_id = ? AND a.completed_date = ? ");
+			sql.append("GROUP BY c.assembly_id, a.completed_date");
+			ps = connection.prepareStatement(sql.toString());
+			ps.setInt(1, departmentId);
+			ps.setDate(2, completedDate);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				int totalLaborTime = rs.getInt("totalLaborTime");
+				return totalLaborTime;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection(connection, ps, null);
+		}
+		return 0;
 	}
 }

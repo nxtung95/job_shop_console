@@ -7,6 +7,13 @@ public class CutJob extends Job {
 	private int machineUsedTime;
 	private String materialUsed;
 
+	public CutJob(Date completedDate, Date commencedDate, int assemblyId, int processId, int laborTime, String machineType, int machineUsedTime, String materialUsed) {
+		super(completedDate, commencedDate, assemblyId, processId, laborTime);
+		this.machineType = machineType;
+		this.machineUsedTime = machineUsedTime;
+		this.materialUsed = materialUsed;
+	}
+
 	public CutJob(Date completedDate, Date commencedDate, int processId, int laborTime, String machineType, int machineUsedTime, String materialUsed) {
 		super(completedDate, commencedDate, processId, laborTime);
 		this.machineType = machineType;
@@ -14,12 +21,8 @@ public class CutJob extends Job {
 		this.materialUsed = materialUsed;
 	}
 
-	public CutJob(Date completedDate, Date commencedDate, int assemblyId, int processId, int laborTime) {
-		super(completedDate, commencedDate, assemblyId, processId, laborTime);
-	}
-
-	public CutJob(Date completedDate, Date commencedDate, int assemblyId, int processId, int laborTime, String machineType, int machineUsedTime, String materialUsed) {
-		super(completedDate, commencedDate, assemblyId, processId, laborTime);
+	public CutJob(int jobNumber, Date completedDate, Date commencedDate, int assemblyId, int processId, int laborTime, String machineType, int machineUsedTime, String materialUsed) {
+		super(jobNumber, completedDate, commencedDate, assemblyId, processId, laborTime);
 		this.machineType = machineType;
 		this.machineUsedTime = machineUsedTime;
 		this.materialUsed = materialUsed;

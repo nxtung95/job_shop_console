@@ -80,4 +80,56 @@ public class AccountDao extends BaseDao {
 		}
 		return false;
 	}
+
+	public boolean updateSuppliedCost(Transaction transaction, double suppliedCost) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		try {
+			connection = getConnection();
+			StringBuilder sql = new StringBuilder("SELECT * FROM account WHERE account_number = ?");
+			ps = connection.prepareStatement(sql.toString());
+			ps.setString(1, transaction.getAccountNumber());
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				double currentSupCost = rs.getDouble("supplied_cost");
+				double updateSupCost = currentSupCost + suppliedCost;
+
+				sql = new StringBuilder("UPDATE account SET supplied_cost = ? WHERE account_number = ?");
+				ps = connection.prepareStatement(sql.toString());
+				ps.setDouble(1, updateSupCost);
+				ps.setString(2, transaction.getAccountNumber());
+				return ps.executeUpdate() > 0;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection(connection, ps, null);
+		}
+		return false;
+	}
+
+	public double getTotalCostByAssemblyId(int assemblyId) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		try {
+			connection = getConnection();
+			StringBuilder sql = new StringBuilder("SELECT c.assembly_Id, SUM(a.Cost) as totalCost FROM account a ");
+			sql.append("JOIN assembly_account b ON a.account_number = b.account_number ");
+			sql.append("JOIN assembly c ON c.assembly_id = b.assembly_id ");
+			sql.append("WHERE c.assembly_id = ? ");
+			sql.append("GROUP BY c.assembly_id ");
+			ps = connection.prepareStatement(sql.toString());
+			ps.setInt(1, assemblyId);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				double totalCost = rs.getDouble("totalCost");
+				return totalCost;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection(connection, ps, null);
+		}
+		return 0;
+	}
 }
