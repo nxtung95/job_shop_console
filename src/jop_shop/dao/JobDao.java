@@ -216,4 +216,54 @@ public class JobDao extends BaseDao {
 		}
 		return 0;
 	}
+
+	public boolean deleteJobWithRange(int jobNumber1, int jobNumber2) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		try {
+			connection = getConnection();
+			connection.setAutoCommit(false);
+			StringBuilder sql = new StringBuilder("DELETE FROM job WHERE job_number BETWEEN ? AND ?");
+			ps = connection.prepareStatement(sql.toString());
+			ps.setInt(1, jobNumber1);
+			ps.setInt(2, jobNumber2);
+			if (ps.executeUpdate() > 0) {
+				sql = new StringBuilder("DELETE FROM cut_job WHERE job_number BETWEEN ? AND ?");
+				ps = connection.prepareStatement(sql.toString());
+				ps.setInt(1, jobNumber1);
+				ps.setInt(2, jobNumber2);
+				ps.executeUpdate();
+				connection.commit();
+				return true;
+			}
+		} catch (Exception e) {
+			try {
+				connection.rollback();
+			} catch (SQLException ex) {
+
+			}
+			e.printStackTrace();
+		} finally {
+			closeConnection(connection, ps, null);
+		}
+		return false;
+	}
+
+	public boolean updatePaintJobColor(int jobNumber, String color) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		try {
+			connection = getConnection();
+			StringBuilder sql = new StringBuilder("UPDATE paint_job SET color = ? WHERE job_number = ?");
+			ps = connection.prepareStatement(sql.toString());
+			ps.setString(1, color);
+			ps.setInt(2, jobNumber);
+			return ps.executeUpdate() > 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection(connection, ps, null);
+		}
+		return false;
+	}
 }

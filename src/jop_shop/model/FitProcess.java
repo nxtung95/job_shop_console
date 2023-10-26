@@ -24,4 +24,9 @@ public class FitProcess extends Process {
 	public void setFitType(String fitType) {
 		this.fitType = fitType;
 	}
+
+	@Override
+	public String toString() {
+		return super.toString();
+	}
 }

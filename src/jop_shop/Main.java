@@ -4,12 +4,11 @@ import jop_shop.dao.*;
 import jop_shop.model.Process;
 import jop_shop.model.*;
 
+import java.io.*;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
     private static CustomerDao customerDao = new CustomerDao();
@@ -81,14 +80,19 @@ public class Main {
                         handleOption11(keyboard);
                         break;
                     case "12":
+                        handleOption12(keyboard);
                         break;
                     case "13":
+                        handleOption13(keyboard);
                         break;
                     case "14":
+                        handleOption14(keyboard);
                         break;
                     case "15":
+                        handleOption15(keyboard);
                         break;
                     case "16":
+                        handleOption16(keyboard);
                         break;
                     case "17":
                         System.out.println("The program has closed, thank you.");
@@ -107,13 +111,167 @@ public class Main {
         }
     }
 
+    private static void handleOption16(Scanner keyboard) throws IOException {
+        System.out.println("Enter an input file name (absolute path): ");
+        String fileName = keyboard.nextLine();
+        File file = new File(fileName);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        String againMessage = "Enter the first category: ";
+        int categoryId1 = inputNumber(keyboard, againMessage);
+
+        againMessage = "Enter the second category: ";
+        int categoryId2 = inputNumber(keyboard, againMessage);
+
+        List<Customer> customerList = customerDao.findAllByCategory(categoryId1, categoryId2);
+
+        boolean result = exportCustomerToFile(file, customerList);
+        if (result) {
+            System.out.println("Export the customers to the file successfully");
+        } else {
+            System.out.println("Export the customers to the file fail");
+        }
+    }
+
+    private static boolean exportCustomerToFile(File file, List<Customer> customerList) {
+        BufferedWriter bufferedWriter = null;
+        FileWriter fileWriter = null;
+        try {
+            fileWriter = new FileWriter(file);
+            bufferedWriter = new BufferedWriter(fileWriter);
+            for (Customer c : customerList) {
+                String data = c.getCustomerId() + "," + c.getName() + "," + c.getAddress() + "," + c.getCategory();
+                bufferedWriter.write(data);
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                bufferedWriter.close();
+                fileWriter.close();
+            } catch (IOException e) {
+
+            }
+        }
+    }
+
+    private static void handleOption15(Scanner keyboard) {
+        System.out.println("Enter an input file name (absolute path): ");
+        String fileName = keyboard.nextLine();
+        File file = new File(fileName);
+        if (!file.exists()) {
+            System.out.println("The file name not exists ");
+            return;
+        }
+        List<Customer> customerList = readImportCustomerFile(file);
+        for (Customer customer : customerList) {
+            customerDao.add(customer.getName(), customer.getAddress(), customer.getCategory());
+        }
+        System.out.println("Import the customers from the file successfully");
+    }
+
+    private static List<Customer> readImportCustomerFile(File file) {
+        List<Customer> customerList = new ArrayList<>();
+        BufferedReader br = null;
+        FileReader fr = null;
+        try {
+            fr = new FileReader(file);
+            br = new BufferedReader(fr);
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] data = line.split(",");
+                String name = data[0];
+                String address = data[1];
+                int category = 0;
+                try {
+                    category = Integer.parseInt(data[2]);
+                } catch (Exception e) {
+
+                }
+                Customer customer = new Customer(0, name, address, category);
+                customerList.add(customer);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                br.close();
+                fr.close();
+            } catch (IOException e) {
+
+            }
+        }
+        return customerList;
+    }
+
+    private static void handleOption14(Scanner keyboard) {
+        System.out.println("Enter a paint job");
+        List<Job> jobList = jobDao.findAll().stream().filter(j -> j instanceof PaintJob).collect(Collectors.toList());
+        printJobData(jobList);
+        Job job = inputJob(keyboard, jobList);
+
+        System.out.println("Enter a change color: ");
+        String color = keyboard.nextLine();
+
+        boolean result = jobDao.updatePaintJobColor(job.getJobNumber(), color);
+        if (result) {
+            System.out.println("Change the color of the paint job successfully");
+        } else {
+            System.out.println("Change the color of the paint job fail");
+        }
+    }
+
+    private static void handleOption13(Scanner keyboard) {
+        String againMessage = "Enter the first job number: ";
+        int jobNumber1 = inputNumber(keyboard, againMessage);
+
+        againMessage = "Enter the second job number: ";
+        int jobNumber2 = inputNumber(keyboard, againMessage);
+
+        boolean result = jobDao.deleteJobWithRange(jobNumber1, jobNumber2);
+        if (result) {
+            System.out.println("Delete the jobs with range successfully");
+        } else {
+            System.out.println("Delete the jobs with range fail");
+        }
+    }
+
+    private static void handleOption12(Scanner keyboard) {
+        String againMessage = "Enter the first category: ";
+        int categoryId1 = inputNumber(keyboard, againMessage);
+
+        againMessage = "Enter the second category: ";
+        int categoryId2 = inputNumber(keyboard, againMessage);
+
+        List<Customer> customerList = customerDao.findAllByCategory(categoryId1, categoryId2);
+        printCustomerData(customerList);
+    }
+
     private static void handleOption11(Scanner keyboard) {
         List<Assembly> assemblyList = assemblyDao.findAll();
         printAssemblyData(assemblyList);
         Assembly assembly = inputAssembly(keyboard, assemblyList);
         int assemblyId = assembly.getAssemblyId();
 
+        List<Department> departmentList = departmentDao.findAll();
+
         List<Process> processList = processDao.finAllByAssemblyAndJobCompleted(assemblyId);
+        System.out.println("All the processes and the department responsible for each process: ");
+        for (Process process : processList) {
+            String processType;
+            if (process instanceof FitProcess) {
+                processType = "Fit Process";
+            } else if (process instanceof CutProcess) {
+                processType = "Cut Process";
+            } else {
+                processType = "Paint Process";
+            }
+            Department department = departmentList.stream().filter(d -> d.getDepartmentId() == process.getDepartmentId()).findFirst().orElse(new Department());
+            System.out.println("Process: " + process.getProcessId() + "---" + processType + "---" + process.getProcessData() + ", department: " + department.getDepartmentId() + "---" + department.getDepartmentData());
+        }
     }
 
     private static void handleOption10(Scanner keyboard) {
@@ -457,8 +615,8 @@ public class Main {
         String name = keyboard.nextLine();
         System.out.println("Address: ");
         String address = keyboard.nextLine();
-        System.out.println("Category: ");
-        String category = keyboard.nextLine();
+
+        int category = inputNumber(keyboard, "Enter a category: ");
         boolean result = customerDao.add(name, address, category);
         if (result) {
             System.out.println("Add the customer successfully");
@@ -664,9 +822,9 @@ public class Main {
 
     private static void printCustomerData(List<Customer> customerList) {
         System.out.println("The list customer: ");
-        System.out.println("Customer_Id---Customer_Name---Customer_Address");
+        System.out.println("Customer_Id---Customer_Name---Customer_Address---Category");
         for (Customer customer : customerList) {
-            System.out.println(customer.getCustomerId() + "---" + customer.getName() + "---" + customer.getAddress());
+            System.out.println(customer.getCustomerId() + "---" + customer.getName() + "---" + customer.getAddress() + "---" + customer.getCategory());
         }
     }
 

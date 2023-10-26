@@ -35,4 +35,15 @@ public class CutProcess extends Process {
 	public void setMachineType(String machineType) {
 		this.machineType = machineType;
 	}
+
+	@Override
+	public String toString() {
+		return "CutProcess{" +
+				"cuttingType='" + cuttingType + '\'' +
+				", machineType='" + machineType + '\'' +
+				", processId=" + processId +
+				", processData='" + processData + '\'' +
+				", departmentId=" + departmentId +
+				'}';
+	}
 }

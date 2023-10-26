@@ -43,4 +43,13 @@ public class Process {
 	public void setDepartmentId(int departmentId) {
 		this.departmentId = departmentId;
 	}
+
+	@Override
+	public String toString() {
+		return "Process{" +
+				"processId=" + processId +
+				", processData='" + processData + '\'' +
+				", departmentId=" + departmentId +
+				'}';
+	}
 }

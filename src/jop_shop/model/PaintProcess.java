@@ -35,4 +35,15 @@ public class PaintProcess extends Process {
 	public void setPaintMethod(String paintMethod) {
 		this.paintMethod = paintMethod;
 	}
+
+	@Override
+	public String toString() {
+		return "PaintProcess{" +
+				"paintType='" + paintType + '\'' +
+				", paintMethod='" + paintMethod + '\'' +
+				", processId=" + processId +
+				", processData='" + processData + '\'' +
+				", departmentId=" + departmentId +
+				'}';
+	}
 }

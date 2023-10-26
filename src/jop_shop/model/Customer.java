@@ -4,13 +4,13 @@ public class Customer {
 	private int customerId;
 	private String name;
 	private String address;
-	private String category;
+	private int category;
 
 	public Customer() {
 
 	}
 
-	public Customer(int customerId, String name, String address, String category) {
+	public Customer(int customerId, String name, String address, int category) {
 		this.customerId = customerId;
 		this.name = name;
 		this.address = address;
@@ -41,11 +41,11 @@ public class Customer {
 		this.address = address;
 	}
 
-	public String getCategory() {
+	public int getCategory() {
 		return category;
 	}
 
-	public void setCategory(String category) {
+	public void setCategory(int category) {
 		this.category = category;
 	}
 }
