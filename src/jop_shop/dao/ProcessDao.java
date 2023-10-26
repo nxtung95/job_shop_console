@@ -5,10 +5,7 @@ import jop_shop.model.FitProcess;
 import jop_shop.model.PaintProcess;
 import jop_shop.model.Process;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +18,7 @@ public class ProcessDao extends BaseDao {
 			connection.setAutoCommit(false);
 
 			StringBuilder sql = new StringBuilder("INSERT INTO process (process_data, department_id) VALUES (?,?)");
-			ps = connection.prepareStatement(sql.toString());
+			ps = connection.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS);
 			ps.setString(1, process.getProcessData());
 			ps.setInt(2, process.getDepartmentId());
 			ps.executeUpdate();

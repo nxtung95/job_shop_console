@@ -543,11 +543,19 @@ public class Main {
     }
 
     private static void handleOption3(Scanner keyboard) {
-        System.out.println("Choose type process: ");
-        System.out.println("1. Fit process");
-        System.out.println("2. Cut process");
-        System.out.println("3. Paint process");
-        String processType = keyboard.nextLine();
+        String processType;
+        while (true) {
+            System.out.println("Choose type process: ");
+            System.out.println("1. Fit process");
+            System.out.println("2. Cut process");
+            System.out.println("3. Paint process");
+            processType = keyboard.nextLine();
+            if (!Arrays.asList("1,2,3".split(",")).contains(processType)) {
+                System.out.println("Invalid process type, try again");
+            } else {
+                break;
+            }
+        }
 
         List<Department> departmentList = departmentDao.findAll();
         printDepartmentData(departmentList);
@@ -582,13 +590,6 @@ public class Main {
 
                 process = new PaintProcess(processData, departmentId, paintType, paintMethod);
                 break;
-            } else {
-                System.out.println("Please choose 1 or 2 or 3");
-                System.out.println("1. Fit process");
-                System.out.println("2. Cut process");
-                System.out.println("3. Paint process");
-                System.out.println("Choose type process: ");
-                processType = keyboard.nextLine();
             }
         }
         boolean result = processDao.add(process);
@@ -616,7 +617,9 @@ public class Main {
         System.out.println("Address: ");
         String address = keyboard.nextLine();
 
-        int category = inputNumber(keyboard, "Enter a category: ");
+        String againMessage = "Enter a category: ";
+        System.out.println(againMessage);
+        int category = inputNumber(keyboard, againMessage);
         boolean result = customerDao.add(name, address, category);
         if (result) {
             System.out.println("Add the customer successfully");
@@ -641,7 +644,8 @@ public class Main {
         while (true) {
             int data;
             try {
-                data = Integer.parseInt(keyboard.nextLine());
+                String input = keyboard.nextLine();
+                data = Integer.parseInt(input);
                 return data;
             } catch (Exception e) {
                 System.out.println("Invalid data, please enter again");
