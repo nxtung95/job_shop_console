@@ -314,12 +314,18 @@ public class Main {
     }
 
     private static void handleOption7(Scanner keyboard) {
+        System.out.println("You need to add a transaction before updating the completed date of the job");
+
+        List<Account> accountList = accountDao.findAll();
+        printAccountData(accountList);
+
+
         List<Job> jobList = jobDao.findAll();
         printJobData(jobList);
         Job job = inputJob(keyboard, jobList);
         int jobNumber = job.getJobNumber();
 
-        String againMessage = "Enter a completed date (dd-MM-yyyy): ";
+        String againMessage = "Enter a completed date of the job (dd-MM-yyyy): ";
         System.out.println(againMessage);
         Date completedDate = inputDate(keyboard, againMessage);
 
@@ -332,40 +338,54 @@ public class Main {
     }
 
     private static void handleOption6(Scanner keyboard) {
-        System.out.println("Enter a new job");
-        String jobType;
-        while (true) {
-            System.out.println("1. Fit job");
-            System.out.println("2. Cut job");
-            System.out.println("3. Paint job");
-            System.out.println("Choose type job: ");
-            jobType = keyboard.nextLine();
-            if (!Arrays.asList("1,2,3".split(",")).contains(jobType)) {
-                System.out.println("Invalid job type, please try again");
-            } else {
-                break;
-            }
-        }
-
         List<Assembly> assemblyList = assemblyDao.findAll();
-        printAssemblyData(assemblyList);
-        Assembly assembly = inputAssembly(keyboard, assemblyList);
-        int assemblyId = assembly.getAssemblyId();
-
         List<Process> processList = processDao.findAll();
-        printProcessData(processList);
-        Process process = inputProcess(keyboard, processList);
-        int processId = process.getProcessId();
 
-        String againMessage = "Enter a commenced date (dd-MM-yyyy): ";
-        System.out.println(againMessage);
-        Date commendDate = inputDate(keyboard, againMessage);
-
-        againMessage = "Enter a labor time (hours): ";
-        int laborTime = inputNumber(keyboard, againMessage);
-
-        Job job = null;
         while (true) {
+            System.out.println("Enter a new job");
+            String jobType;
+            while (true) {
+                System.out.println("1. Fit job");
+                System.out.println("2. Cut job");
+                System.out.println("3. Paint job");
+                System.out.println("Choose type job: ");
+                jobType = keyboard.nextLine();
+                if (!Arrays.asList("1,2,3".split(",")).contains(jobType)) {
+                    System.out.println("Invalid job type, please try again");
+                } else {
+                    break;
+                }
+            }
+
+            printAssemblyData(assemblyList);
+            Assembly assembly = inputAssembly(keyboard, assemblyList);
+            int assemblyId = assembly.getAssemblyId();
+
+            if ("1".equals(jobType)) {
+                processList = processList.stream().filter(f -> f instanceof FitProcess).collect(Collectors.toList());
+            } else if ("2".equals(jobType)) {
+                processList = processList.stream().filter(f -> f instanceof CutProcess).collect(Collectors.toList());
+            } else if ("3".equals(jobType)) {
+                processList = processList.stream().filter(f -> f instanceof PaintProcess).collect(Collectors.toList());
+            }
+            if (processList.isEmpty()) {
+                System.out.println("Dont have properly processes, please add this properly process first");
+                return;
+            }
+
+            printProcessData(processList);
+            Process process = inputProcess(keyboard, processList);
+            int processId = process.getProcessId();
+
+            String againMessage = "Enter a commenced date (dd-MM-yyyy): ";
+            System.out.println(againMessage);
+            Date commendDate = inputDate(keyboard, againMessage);
+
+            againMessage = "Enter a labor time (hours): ";
+            System.out.println(againMessage);
+            int laborTime = inputNumber(keyboard, againMessage);
+
+            Job job = null;
             if ("1".equals(jobType)) {
                 job = new FitJob(null, commendDate, assemblyId, processId, laborTime);
             } else if ("2".equals(jobType)) {
@@ -390,7 +410,18 @@ public class Main {
 
                 job = new PaintJob(null, commendDate, assemblyId, processId, laborTime, color, volume);
             }
-            jobDao.add(job);
+            boolean result = jobDao.add(job);
+            if (result) {
+                System.out.println("Add the job successfully");
+            } else {
+                System.out.println("Add the job fail");
+            }
+
+            System.out.println("Do you need add more jobs? (Y/N)");
+            String jobChoice = keyboard.nextLine();
+            if ("N".equalsIgnoreCase(jobChoice)) {
+                break;
+            }
         }
     }
 
@@ -473,31 +504,36 @@ public class Main {
         Date orderDate = new Date(new java.util.Date().getTime());
         Assembly assembly = new Assembly(orderDate, assemblyDetail, customerId);
 
+        List<Process> processList = processDao.findAll();
         while (true) {
-            List<Process> processList = processDao.findAll();
             printProcessData(processList);
             Process process = inputProcess(keyboard, processList);
             int processId = process.getProcessId();
-
             while (true) {
-                System.out.println("This assembly associates one or more processes through one or more jobs. You need to enter jobs: ");
-                System.out.println("1. Fit job");
-                System.out.println("2. Cut job");
-                System.out.println("3. Paint job");
-                System.out.println("Choose type job: ");
-                String jobType = keyboard.nextLine();
                 Job job = null;
+                if (process instanceof FitProcess) {
+                    System.out.println("Enter a fit job");
 
-                String againMessage = "Enter a commenced date (dd-MM-yyyy): ";
-                System.out.println(againMessage);
-                Date commendDate = inputDate(keyboard, againMessage);
+                    String againMessage = "Enter a commenced date (dd-MM-yyyy): ";
+                    System.out.println(againMessage);
+                    Date commendDate = inputDate(keyboard, againMessage);
 
-                againMessage = "Enter a labor time (hours): ";
-                int laborTime = inputNumber(keyboard, againMessage);
+                    againMessage = "Enter a labor time (hours): ";
+                    System.out.println(againMessage);
+                    int laborTime = inputNumber(keyboard, againMessage);
 
-                if ("1".equals(jobType)) {
                     job = new FitJob(null, commendDate, processId, laborTime);
-                } else if ("2".equals(jobType)) {
+                } else if (process instanceof CutProcess) {
+                    System.out.println("Enter a cut job");
+
+                    String againMessage = "Enter a commenced date (dd-MM-yyyy): ";
+                    System.out.println(againMessage);
+                    Date commendDate = inputDate(keyboard, againMessage);
+
+                    againMessage = "Enter a labor time (hours): ";
+                    System.out.println(againMessage);
+                    int laborTime = inputNumber(keyboard, againMessage);
+
                     System.out.println("Enter a machine type: ");
                     String machineType = keyboard.nextLine();
 
@@ -509,7 +545,17 @@ public class Main {
                     String materialUsed = keyboard.nextLine();
 
                     job = new CutJob(null, commendDate, processId, laborTime, machineType, machineUsedTime, materialUsed);
-                } else if ("3".equals(jobType)) {
+                } else if (process instanceof PaintProcess) {
+                    System.out.println("Enter a paint job");
+
+                    String againMessage = "Enter a commenced date (dd-MM-yyyy): ";
+                    System.out.println(againMessage);
+                    Date commendDate = inputDate(keyboard, againMessage);
+
+                    againMessage = "Enter a labor time (hours): ";
+                    System.out.println(againMessage);
+                    int laborTime = inputNumber(keyboard, againMessage);
+
                     System.out.println("Enter a color: ");
                     String color = keyboard.nextLine();
 
@@ -527,15 +573,15 @@ public class Main {
                         System.out.println("Add the assembly and the job fail");
                     }
 
+                    System.out.println("Do you need add more jobs for this process? (Y/N)");
                     String jobChoice = keyboard.nextLine();
-                    System.out.println("Do you need add more job for this process? (Y/N)");
                     if ("N".equalsIgnoreCase(jobChoice)) {
                         break;
                     }
                 }
             }
-            String processChoice = keyboard.nextLine();
             System.out.println("Do you need add more processes for this assembly? (Y/N)");
+            String processChoice = keyboard.nextLine();
             if ("N".equalsIgnoreCase(processChoice)) {
                 break;
             }
@@ -687,6 +733,25 @@ public class Main {
         }
     }
 
+    private static Account inputAccount(Scanner keyboard, List<Account> accountList) {
+        while (true) {
+            System.out.println("Enter the account id: ");
+            String accountNumber;
+            try {
+                accountNumber = keyboard.nextLine();
+
+                Optional<Account> optionalAccount = accountList.stream().filter(c -> accountNumber.equals(c.getAccountNumber())).findFirst();
+                if (!optionalAccount.isPresent()) {
+                    System.out.println("The account id is not in the list, please enter again");
+                    continue;
+                }
+                return optionalAccount.get();
+            } catch (Exception e) {
+                System.out.println("Invalid account id, please enter again");
+            }
+        }
+    }
+
     private static void printAssemblyData(List<Assembly> assemblyList) {
         System.out.println("The list assembly: ");
         System.out.println("Assembly_Id---Assembly_Detail");
@@ -787,6 +852,23 @@ public class Main {
             } catch (Exception e) {
                 System.out.println("Invalid department id, please enter again");
             }
+        }
+    }
+
+    private static void printAccountData(List<Account> accountList) {
+        System.out.println("The list account: ");
+        System.out.println("Account_Number---Account_Type");
+        for (Account account : accountList) {
+            String accountType;
+            if (account instanceof ProcessAccount) {
+                accountType = "Process Account";
+            } else if (account instanceof DepartmentAccount) {
+                accountType = "Department Account";
+            } else {
+                accountType = "Assembly Account";
+            }
+
+            System.out.println(account.getAccountNumber() + "---" + accountType);
         }
     }
 

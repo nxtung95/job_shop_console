@@ -40,7 +40,7 @@ public class TransactionDao extends BaseDao {
 		List<Transaction> transactionList = new ArrayList<>();
 		try {
 			connection = getConnection();
-			StringBuilder sql = new StringBuilder("SELECT * FROM transaction");
+			StringBuilder sql = new StringBuilder("SELECT * FROM [transaction]");
 			ps = connection.prepareStatement(sql.toString());
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {

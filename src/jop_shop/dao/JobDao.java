@@ -16,7 +16,7 @@ public class JobDao extends BaseDao {
 			connection = getConnection();
 			connection.setAutoCommit(false);
 			StringBuilder sql = new StringBuilder("INSERT INTO assembly(date_ordered, assembly_detail, customer_id) VALUES (?,?,?)");
-			ps = connection.prepareStatement(sql.toString());
+			ps = connection.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS);
 			ps.setDate(1, assembly.getDateOrdered());
 			ps.setString(2, assembly.getAssemblyDetail());
 			ps.setInt(3, assembly.getCustomerId());
@@ -25,7 +25,7 @@ public class JobDao extends BaseDao {
 			if (rs.next()) {
 				int assemblyId = rs.getInt(1);
 				sql = new StringBuilder("INSERT INTO job(completed_date, commenced_date, assembly_id, process_id, labor_time) VALUES (?,?,?,?,?)");
-				ps = connection.prepareStatement(sql.toString());
+				ps = connection.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS);
 				ps.setDate(1, job.getCompletedDate());
 				ps.setDate(2, job.getCommencedDate());
 				ps.setInt(3, assemblyId);
@@ -82,7 +82,7 @@ public class JobDao extends BaseDao {
 			connection = getConnection();
 			connection.setAutoCommit(false);
 			StringBuilder sql = new StringBuilder("INSERT INTO job(completed_date, commenced_date, assembly_id, process_id, labor_time) VALUES (?,?,?,?,?)");
-			ps = connection.prepareStatement(sql.toString());
+			ps = connection.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS);
 
 			ps.setDate(1, job.getCompletedDate());
 			ps.setDate(2, job.getCommencedDate());

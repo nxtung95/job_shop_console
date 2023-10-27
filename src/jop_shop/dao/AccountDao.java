@@ -2,14 +2,47 @@ package jop_shop.dao;
 
 import jop_shop.model.*;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AccountDao extends BaseDao {
+	public List<Account> findAll() {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		List<Account> accountList = new ArrayList<>();
+		try {
+			connection = getConnection();
+			StringBuilder sql = new StringBuilder("SELECT a.account_number, a.established_date, a.cost, b.assembly_id as extra1, '0' as type FROM account a JOIN assembly_account b ON a.account_number = b.account_number ");
+			sql.append("UNION ALL SELECT a.process_id, a.process_data, a.department_id, b.department_id as extra1, '1' as type FROM account a JOIN department_account b ON a.account_number = b.account_number ");
+			sql.append("UNION ALL SELECT a.process_id, a.process_data, a.department_id, b.process_id as extra1, '2' as type FROM account a JOIN process_account b ON a.account_number = b.account_number ");
+			ps = connection.prepareStatement(sql.toString());
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				String accountNumber = rs.getString("account_number");
+				Date establishedDate = rs.getDate("established_date");
+				double cost = rs.getDouble("cost");
+				int extra1 = rs.getInt("extra1");
+				String type = rs.getString("type");
+				Account account;
+				if ("0".equals(type)) {
+					account = new AssemblyAccount(accountNumber, establishedDate, cost, extra1);
+				} else if ("1".equals(type)) {
+					account = new DepartmentAccount(accountNumber, establishedDate, cost, extra1);
+				} else {
+					account = new ProcessAccount(accountNumber, establishedDate, cost, extra1);
+				}
+				accountList.add(account);
+			}
+			return accountList;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection(connection, ps, null);
+		}
+		return accountList;
+	}
+
 	public boolean checkExistAccountNo(String accountNo) {
 		Connection connection = null;
 		PreparedStatement ps = null;
@@ -40,10 +73,8 @@ public class AccountDao extends BaseDao {
 			ps.setString(1, account.getAccountNumber());
 			ps.setDate(2, account.getEstablishedDate());
 			ps.setDouble(3, account.getCost());
-			ps.executeUpdate();
-			ResultSet rs = ps.getGeneratedKeys();
-			if (rs.next()) {
-				String accountNumber = rs.getString(1);
+			if (ps.executeUpdate() > 0) {
+				String accountNumber = account.getAccountNumber();
 				if (account instanceof AssemblyAccount) {
 					AssemblyAccount assemblyAccount = (AssemblyAccount) account;
 					sql = new StringBuilder("INSERT INTO assembly_account(account_number, assembly_id) VALUES (?,?)");
@@ -67,6 +98,7 @@ public class AccountDao extends BaseDao {
 					ps.executeUpdate();
 				}
 				connection.commit();
+				return true;
 			}
 		} catch (Exception e) {
 			try {
