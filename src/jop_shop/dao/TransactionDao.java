@@ -9,30 +9,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionDao extends BaseDao {
-//	public Transaction getTransactionByTranxNumber(int transactionNumber) {
-//		Connection connection = null;
-//		PreparedStatement ps = null;
-//		try {
-//			connection = getConnection();
-//			StringBuilder sql = new StringBuilder("SELECT a.supplied_cost, a.account_number FROM transaction a " +
-//					"JOIN Account b ON a.account_number = b.account_number " +
-//					"WHERE transaction_number = ?");
-//			ps = connection.prepareStatement(sql.toString());
-//			ps.setInt(1, transactionNumber);
-//			ResultSet rs = ps.executeQuery();
-//			if (rs.next()) {
-//				double suppliedCost = rs.getDouble("supplied_cost");
-//				String accountNumber = rs.getString("account_number");
-//				Transaction transaction = new Transaction(transactionNumber, suppliedCost, accountNumber);
-//				return transaction;
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		} finally {
-//			closeConnection(connection, ps, null);
-//		}
-//		return null;
-//	}
+
+	public boolean add(Connection connection, PreparedStatement ps, Transaction transaction) {
+		try {
+			connection = getConnection();
+			StringBuilder sql = new StringBuilder("INSERT INTO transaction(supplied_cost, account_number, job_number) VALUES (?,?,?)");
+			ps = connection.prepareStatement(sql.toString());
+			ps.setDouble(1, transaction.getSuppliedCost());
+			ps.setString(2, transaction.getAccountNumber());
+			ps.setInt(3, transaction.getJobNumber());
+			return ps.executeUpdate() > 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 
 	public List<Transaction> findAll() {
 		Connection connection = null;
@@ -47,7 +38,8 @@ public class TransactionDao extends BaseDao {
 				int transactionNumber = rs.getInt("transaction_number");
 				double suppliedCost = rs.getDouble("supplied_cost");
 				String accountNumber = rs.getString("account_number");
-				Transaction transaction = new Transaction(transactionNumber, suppliedCost, accountNumber);
+				int jobNumber = rs.getInt("job_number");
+				Transaction transaction = new Transaction(transactionNumber, suppliedCost, accountNumber, jobNumber);
 				transactionList.add(transaction);
 			}
 			return transactionList;

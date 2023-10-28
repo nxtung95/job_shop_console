@@ -314,22 +314,28 @@ public class Main {
     }
 
     private static void handleOption7(Scanner keyboard) {
-        System.out.println("You need to add a transaction before updating the completed date of the job");
+        System.out.println("You need to add a cost transaction before updating the completed date of the job");
 
         List<Account> accountList = accountDao.findAll();
         printAccountData(accountList);
+        Account account = inputAccount(keyboard, accountList);
 
+        String againMessage = "Enter a supplied cost: ";
+        System.out.println(againMessage);
+        double suppliedCost = inputDecimal(keyboard, againMessage);
 
         List<Job> jobList = jobDao.findAll();
         printJobData(jobList);
         Job job = inputJob(keyboard, jobList);
         int jobNumber = job.getJobNumber();
 
-        String againMessage = "Enter a completed date of the job (dd-MM-yyyy): ";
+        Transaction transaction = new Transaction(suppliedCost, account.getAccountNumber(), jobNumber);
+
+        againMessage = "Enter a completed date of the job (dd-MM-yyyy): ";
         System.out.println(againMessage);
         Date completedDate = inputDate(keyboard, againMessage);
 
-        boolean result = jobDao.updateCompletedDate(jobNumber, completedDate);
+        boolean result = jobDao.updateCompletedDateAndInsertTran(jobNumber, completedDate, transaction);
         if (result) {
             System.out.println("Update the completed date of the job successfully");
         } else {
@@ -735,19 +741,19 @@ public class Main {
 
     private static Account inputAccount(Scanner keyboard, List<Account> accountList) {
         while (true) {
-            System.out.println("Enter the account id: ");
+            System.out.println("Enter the account number: ");
             String accountNumber;
             try {
                 accountNumber = keyboard.nextLine();
 
                 Optional<Account> optionalAccount = accountList.stream().filter(c -> accountNumber.equals(c.getAccountNumber())).findFirst();
                 if (!optionalAccount.isPresent()) {
-                    System.out.println("The account id is not in the list, please enter again");
+                    System.out.println("The account number is not in the list, please enter again");
                     continue;
                 }
                 return optionalAccount.get();
             } catch (Exception e) {
-                System.out.println("Invalid account id, please enter again");
+                System.out.println("Invalid account number, please enter again");
             }
         }
     }

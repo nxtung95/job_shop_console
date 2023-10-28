@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JobDao extends BaseDao {
+	private TransactionDao transactionDao = new TransactionDao();
+
 	public boolean add(Assembly assembly, Job job) {
 		System.out.println("Add Assembly: " + assembly.toString());
 		System.out.println("Add Job: " + job.toString());
@@ -173,17 +175,30 @@ public class JobDao extends BaseDao {
 		return jobList;
 	}
 
-	public boolean updateCompletedDate(int jobNumber, Date completedDate) {
+	public boolean updateCompletedDateAndInsertTran(int jobNumber, Date completedDate, Transaction transaction) {
 		Connection connection = null;
 		PreparedStatement ps = null;
 		try {
 			connection = getConnection();
+			connection.setAutoCommit(false);
 			StringBuilder sql = new StringBuilder("UPDATE job SET completed_date = ? WHERE job_number = ?");
 			ps = connection.prepareStatement(sql.toString());
 			ps.setDate(1, completedDate);
 			ps.setInt(2, jobNumber);
-			return ps.executeUpdate() > 0;
+			if (ps.executeUpdate() > 0) {
+				boolean res = transactionDao.add(connection, ps, transaction);
+				if (res) {
+					connection.commit();
+				} else {
+					connection.rollback();
+				}
+			}
 		} catch (Exception e) {
+			try {
+				connection.rollback();
+			} catch (SQLException sqlException) {
+
+			}
 			e.printStackTrace();
 		} finally {
 			closeConnection(connection, ps, null);
