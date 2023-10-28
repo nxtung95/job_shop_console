@@ -46,7 +46,6 @@ public class AccountDao extends BaseDao {
 	public boolean checkExistAccountNo(String accountNo) {
 		Connection connection = null;
 		PreparedStatement ps = null;
-		List<Customer> customerList = new ArrayList<>();
 		try {
 			connection = getConnection();
 			StringBuilder sql = new StringBuilder("SELECT * FROM account WHERE account_number = ?");

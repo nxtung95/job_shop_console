@@ -119,10 +119,17 @@ public class Main {
             file.createNewFile();
         }
         String againMessage = "Enter the first category: ";
+        System.out.println(againMessage);
         int categoryId1 = inputNumber(keyboard, againMessage);
 
         againMessage = "Enter the second category: ";
+        System.out.println(againMessage);
         int categoryId2 = inputNumber(keyboard, againMessage);
+
+        if (categoryId1 >= categoryId2) {
+            System.out.println("The category id 1 is greater than the category id 2. Please try again");
+            return;
+        }
 
         List<Customer> customerList = customerDao.findAllByCategory(categoryId1, categoryId2);
 
@@ -141,7 +148,7 @@ public class Main {
             fileWriter = new FileWriter(file);
             bufferedWriter = new BufferedWriter(fileWriter);
             for (Customer c : customerList) {
-                String data = c.getCustomerId() + "," + c.getName() + "," + c.getAddress() + "," + c.getCategory();
+                String data = c.getCustomerId() + "," + c.getName() + "," + c.getAddress() + "," + c.getCategory() + "\r\n";
                 bufferedWriter.write(data);
             }
             return true;
@@ -212,7 +219,7 @@ public class Main {
         List<Job> jobList = jobDao.findAll().stream().filter(j -> j instanceof PaintJob).collect(Collectors.toList());
         printJobData(jobList);
         Job job = inputJob(keyboard, jobList);
-
+//        int jobNumber = inputNumber(keyboard, "Enter a paint job");
         System.out.println("Enter a change color: ");
         String color = keyboard.nextLine();
 
@@ -226,10 +233,17 @@ public class Main {
 
     private static void handleOption13(Scanner keyboard) {
         String againMessage = "Enter the first job number: ";
+        System.out.println(againMessage);
         int jobNumber1 = inputNumber(keyboard, againMessage);
 
         againMessage = "Enter the second job number: ";
+        System.out.println(againMessage);
         int jobNumber2 = inputNumber(keyboard, againMessage);
+
+        if (jobNumber1 >= jobNumber2) {
+            System.out.println("The job number 1 is greater than the job number 2. Please try again");
+            return;
+        }
 
         boolean result = jobDao.deleteJobWithRange(jobNumber1, jobNumber2);
         if (result) {
@@ -241,10 +255,17 @@ public class Main {
 
     private static void handleOption12(Scanner keyboard) {
         String againMessage = "Enter the first category: ";
+        System.out.println(againMessage);
         int categoryId1 = inputNumber(keyboard, againMessage);
 
         againMessage = "Enter the second category: ";
+        System.out.println(againMessage);
         int categoryId2 = inputNumber(keyboard, againMessage);
+
+        if (categoryId1 >= categoryId2) {
+            System.out.println("The job number 1 is greater than the job number 2. Please try again");
+            return;
+        }
 
         List<Customer> customerList = customerDao.findAllByCategory(categoryId1, categoryId2);
         printCustomerData(customerList);
@@ -445,15 +466,17 @@ public class Main {
             }
 
             String accountNo;
-            while (true) {
-                System.out.println("Enter an account no: ");
-                accountNo = keyboard.nextLine();
-                if (accountDao.checkExistAccountNo(accountNo)) {
-                    System.out.println("This account no have existed on the system, please enter again");
-                } else {
-                    break;
-                }
-            }
+            System.out.println("Enter an account no: ");
+            accountNo = keyboard.nextLine();
+//            while (true) {
+//                System.out.println("Enter an account no: ");
+//                accountNo = keyboard.nextLine();
+//                if (accountDao.checkExistAccountNo(accountNo)) {
+//                    System.out.println("This account no have existed on the system, please enter again");
+//                } else {
+//                    break;
+//                }
+//            }
 
             String againName = "Enter a cost: ";
             System.out.println(againName);
@@ -509,6 +532,7 @@ public class Main {
 
         Date orderDate = new Date(new java.util.Date().getTime());
         Assembly assembly = new Assembly(orderDate, assemblyDetail, customerId);
+        int assemblyId = assemblyDao.add(assembly);
 
         List<Process> processList = processDao.findAll();
         while (true) {
@@ -572,7 +596,8 @@ public class Main {
                     job = new PaintJob(null, commendDate, processId, laborTime, color, volume);
                 }
                 if (job != null) {
-                    boolean result = jobDao.add(assembly, job);
+                    job.setAssemblyId(assemblyId);
+                    boolean result = jobDao.add(job);
                     if (result) {
                         System.out.println("Add the assembly and the job successfully");
                     } else {
@@ -611,9 +636,10 @@ public class Main {
 
         List<Department> departmentList = departmentDao.findAll();
         printDepartmentData(departmentList);
-        Department department = inputDepartment(keyboard, departmentList);
-        int departmentId = department.getDepartmentId();
-
+//        Department department = inputDepartment(keyboard, departmentList);
+//        int departmentId = department.getDepartmentId();
+        System.out.println("Enter a denpartment id: ");
+        int departmentId = inputNumber(keyboard, "Enter a denpartment id: ");
         System.out.println("Enter a process data: ");
         String processData = keyboard.nextLine();
 
