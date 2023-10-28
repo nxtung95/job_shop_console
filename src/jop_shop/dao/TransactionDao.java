@@ -10,11 +10,10 @@ import java.util.List;
 
 public class TransactionDao extends BaseDao {
 
-	public boolean add(Connection connection, PreparedStatement ps, Transaction transaction) {
+	public boolean add(Connection connection, Transaction transaction) {
 		try {
-			connection = getConnection();
-			StringBuilder sql = new StringBuilder("INSERT INTO transaction(supplied_cost, account_number, job_number) VALUES (?,?,?)");
-			ps = connection.prepareStatement(sql.toString());
+			StringBuilder sql = new StringBuilder("INSERT INTO [transaction](supplied_cost, account_number, job_number) VALUES (?,?,?)");
+			PreparedStatement ps = connection.prepareStatement(sql.toString());
 			ps.setDouble(1, transaction.getSuppliedCost());
 			ps.setString(2, transaction.getAccountNumber());
 			ps.setInt(3, transaction.getJobNumber());

@@ -186,9 +186,10 @@ public class JobDao extends BaseDao {
 			ps.setDate(1, completedDate);
 			ps.setInt(2, jobNumber);
 			if (ps.executeUpdate() > 0) {
-				boolean res = transactionDao.add(connection, ps, transaction);
+				boolean res = transactionDao.add(connection, transaction);
 				if (res) {
 					connection.commit();
+					return true;
 				} else {
 					connection.rollback();
 				}
@@ -215,7 +216,7 @@ public class JobDao extends BaseDao {
 			sql.append("JOIN process b ON a.process_id = b.process_id ");
 			sql.append("JOIN department c ON b.department_id = c.department_id ");
 			sql.append("WHERE c.department_id = ? AND a.completed_date = ? ");
-			sql.append("GROUP BY c.assembly_id, a.completed_date");
+			sql.append("GROUP BY c.department_Id, a.completed_date");
 			ps = connection.prepareStatement(sql.toString());
 			ps.setInt(1, departmentId);
 			ps.setDate(2, completedDate);

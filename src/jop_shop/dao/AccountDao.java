@@ -123,10 +123,10 @@ public class AccountDao extends BaseDao {
 			ps.setString(1, transaction.getAccountNumber());
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
-				double currentSupCost = rs.getDouble("supplied_cost");
+				double currentSupCost = rs.getDouble("cost");
 				double updateSupCost = currentSupCost + suppliedCost;
 
-				sql = new StringBuilder("UPDATE account SET supplied_cost = ? WHERE account_number = ?");
+				sql = new StringBuilder("UPDATE account SET cost = ? WHERE account_number = ?");
 				ps = connection.prepareStatement(sql.toString());
 				ps.setDouble(1, updateSupCost);
 				ps.setString(2, transaction.getAccountNumber());
