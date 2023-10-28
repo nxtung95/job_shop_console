@@ -4,14 +4,22 @@ public class Transaction {
 	private int transactionNumber;
 	private double suppliedCost;
 	private String accountNumber;
+	private int jobNumber;
 
 	public Transaction() {
 	}
 
-	public Transaction(int transactionNumber, double suppliedCost, String accountNumber) {
+	public Transaction(double suppliedCost, String accountNumber, int jobNumber) {
+		this.suppliedCost = suppliedCost;
+		this.accountNumber = accountNumber;
+		this.jobNumber = jobNumber;
+	}
+
+	public Transaction(int transactionNumber, double suppliedCost, String accountNumber, int jobNumber) {
 		this.transactionNumber = transactionNumber;
 		this.suppliedCost = suppliedCost;
 		this.accountNumber = accountNumber;
+		this.jobNumber = jobNumber;
 	}
 
 	public int getTransactionNumber() {
@@ -36,5 +44,13 @@ public class Transaction {
 
 	public void setAccountNumber(String accountNumber) {
 		this.accountNumber = accountNumber;
+	}
+
+	public int getJobNumber() {
+		return jobNumber;
+	}
+
+	public void setJobNumber(int jobNumber) {
+		this.jobNumber = jobNumber;
 	}
 }

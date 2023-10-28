@@ -14,8 +14,8 @@ public class AccountDao extends BaseDao {
 		try {
 			connection = getConnection();
 			StringBuilder sql = new StringBuilder("SELECT a.account_number, a.established_date, a.cost, b.assembly_id as extra1, '0' as type FROM account a JOIN assembly_account b ON a.account_number = b.account_number ");
-			sql.append("UNION ALL SELECT a.process_id, a.process_data, a.department_id, b.department_id as extra1, '1' as type FROM account a JOIN department_account b ON a.account_number = b.account_number ");
-			sql.append("UNION ALL SELECT a.process_id, a.process_data, a.department_id, b.process_id as extra1, '2' as type FROM account a JOIN process_account b ON a.account_number = b.account_number ");
+			sql.append("UNION ALL SELECT a.account_number, a.established_date, a.cost, b.department_id as extra1, '1' as type FROM account a JOIN department_account b ON a.account_number = b.account_number ");
+			sql.append("UNION ALL SELECT a.account_number, a.established_date, a.cost, b.process_id as extra1, '2' as type FROM account a JOIN process_account b ON a.account_number = b.account_number ");
 			ps = connection.prepareStatement(sql.toString());
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
